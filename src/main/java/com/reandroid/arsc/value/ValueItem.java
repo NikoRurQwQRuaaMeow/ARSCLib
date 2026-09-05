@@ -473,7 +473,7 @@ public abstract class ValueItem extends BlockItem implements Value,
             throw new NullPointerException("Parent package block is null");
         }
         if(resourceEntry == null || !resourceEntry.isDeclared()){
-            return ValueCoder.decodeUnknownResourceId(valueType == ValueType.REFERENCE, data);
+            return ValueCoder.decodeUnknownResourceId(valueType, data);
         }
         return resourceEntry.buildReference(getPackageBlock(), valueType);
     }

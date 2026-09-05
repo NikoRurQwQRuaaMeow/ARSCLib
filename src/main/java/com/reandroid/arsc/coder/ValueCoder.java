@@ -81,7 +81,7 @@ public class ValueCoder {
         if(resourceEntry != null && resourceEntry.isDefined()){
             return resourceEntry.buildReference(packageBlock, referenceType);
         }
-        return decodeUnknownResourceId(referenceType == ValueType.REFERENCE, resourceId);
+        return decodeUnknownResourceId(referenceType, resourceId);
     }
     public static EncodeResult encodeReference(PackageBlock packageBlock, String value){
         if(value == null || value.length() < 3){
@@ -136,6 +136,18 @@ public class ValueCoder {
     }
     public static String decodeUnknownNameId(int referenceId){
         return CoderUnknownNameId.INS.decode(referenceId);
+    }
+    public static String decodeUnknownResourceId(ValueType valueType, int referenceId){
+        if(valueType == ValueType.REFERENCE){
+            return CoderUnknownReferenceId.INS.decode(referenceId);
+        }
+        if(valueType == ValueType.DYNAMIC_REFERENCE){
+            return CoderUnknownDynamicReferenceId.INS.decode(referenceId);
+        }
+        if(valueType == ValueType.DYNAMIC_ATTRIBUTE){
+            return CoderUnknownDynamicAttributeId.INS.decode(referenceId);
+        }
+        return CoderUnknownAttributeId.INS.decode(referenceId);
     }
     public static String decodeUnknownResourceId(boolean is_reference, int referenceId){
         if(is_reference){
@@ -277,6 +289,20 @@ public class ValueCoder {
                 return encodeResult;
             }
         }
+        unknown = CoderUnknownDynamicReferenceId.INS;
+        if(unknown.canStartWith(first)){
+            encodeResult = unknown.encode(text);
+            if(encodeResult != null){
+                return encodeResult;
+            }
+        }
+        unknown = CoderUnknownDynamicAttributeId.INS;
+        if(unknown.canStartWith(first)){
+            encodeResult = unknown.encode(text);
+            if(encodeResult != null){
+                return encodeResult;
+            }
+        }
         unknown = CoderUnknownStringRef.INS;
         if(unknown.canStartWith(first)){
             return unknown.encode(text);
@@ -355,7 +381,9 @@ public class ValueCoder {
                 CoderColorARGB8.INS,
                 CoderFloat.INS,
                 CoderHex.INS,
-                CoderInteger.INS
+                CoderInteger.INS,
+                CoderUnknownDynamicReferenceId.INS,
+                CoderUnknownDynamicAttributeId.INS
         };
         Map<ValueType, Coder> map = new HashMap<>();
         map.put(CoderNull.INS.getValueType(), CoderNull.INS);
@@ -369,6 +397,8 @@ public class ValueCoder {
         map.put(CoderFloat.INS.getValueType(), CoderFloat.INS);
         map.put(CoderHex.INS.getValueType(), CoderHex.INS);
         map.put(CoderInteger.INS.getValueType(), CoderInteger.INS);
+        map.put(CoderUnknownDynamicReferenceId.INS.getValueType(), CoderUnknownDynamicReferenceId.INS);
+        map.put(CoderUnknownDynamicAttributeId.INS.getValueType(), CoderUnknownDynamicAttributeId.INS);
         CODER_MAP = map;
 
         CODERS_NULL = new Coder[]{
